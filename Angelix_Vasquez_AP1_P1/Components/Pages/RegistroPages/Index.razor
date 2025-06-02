@@ -1,5 +1,83 @@
-﻿<h3>Index</h3>
+﻿@page "/Registro/Index"
+@rendermode InteractiveServer
+@using System.Globalization;
 
-@code {
 
-}
+<PageTitle>Consulta de Registro</PageTitle>
+<div class="container mt-3">
+    <div class="card shadow-lg p-3">
+        <div class="card-header mb-1 text-center bg-white border-0">
+            <h2 class="card-title"><strong>Consulta de Registro</strong></h2>
+        </div>
+
+
+         <div class="row mb-2">
+             div class="col-md-3">
+                    <label class="form-label"><strong>Filtrar por</strong></label>
+                    <InputSelect class="form-select" @bind-Value="filtro">
+                        <option value="" disabled selected>Elija una opción</option>
+                        <option value="id">Id </option>
+                    </InputSelect>  
+        </div>
+
+         <div class="col-md-4">
+                    <label class="form-label"><strong>Búsqueda</strong></label>
+                    <div class="input-group">
+                        <input class="form-control" @bind="valorFiltro" placeholder="Buscar" />
+                        <button type="button" class="btn btn-primary bi bi-search" @onclick="Buscar">
+                            Buscar
+                        </button>
+                    </div>
+        </div>
+        <div class="col-5 text-end">
+            <a href="Registro/Create" class="btn btn-success">
+                <span class="bi bi-plus-square"></span> Crear
+            </a>
+        </div>
+    </div>
+
+        <div class="row mb-4">
+                <div class="col-md-3">
+                    <label class="form-label"><strong>Desde Fecha</strong></label>
+                    <InputDate class="form-control" @bind-Value="Desde" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><strong>Hasta Fecha</strong></label>
+                    <InputDate class="form-control" @bind-Value="Hasta" />
+                </div>
+
+    </div>
+
+    <table class="table table-hover table-bordered text-center mt-4">
+                    <thead class="table-striped text-black">
+                        <tr>
+                            <th>Id</th>
+                             </tr>
+                    </thead>
+                    <tbody>
+
+            @foreach (var registro in registro)
+            {
+                <tr>
+                    <td>@Registro.RegistroId</td>
+
+
+                    <td class="text-center">
+                        <a href="/Registro/Edit/@registro.RegistroId" class="btn btn-outline-success bi bi-pencil-fill"></a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <label><strong>Cantidad: @Registros.Count()</strong></label>
+            <label class="ms-auto"><strong>Total : @Registros.Sum(c => c.).ToString("C2", CultureInfo.CurrentCulture)</strong></label>
+        </div>
+    </div>
+</div>
+
+@code 
+
