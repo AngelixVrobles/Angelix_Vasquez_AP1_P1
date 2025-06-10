@@ -1,0 +1,102 @@
+﻿@page "/Aportes/Create"
+@inject AporteService aporteService
+@inject NavigationManager navigation
+@inject ToastService? ToastService
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<EditForm Model="aporte" OnValidSubmit="Crear">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container p-0">
+        <div class="card shadow-lg">
+            <div class="card-header text-center bg-primary text-white">
+                <h3 class="card-title"><strong>Registro de Aportes</strong></h3>
+            </div>
+
+            <div class="card-body">
+                @* Id *@
+                <div class="mb-3">
+                    <label class="form-label"><strong>Aporte Id</strong></label>
+                    <InputNumber class="form-control" @bind-Value="aporte.AporteId" readonly />
+                </div>
+
+                @* Nombre *@
+                <div class="mb-3">
+                    <label class="form-label" for="nombre"><strong>Nombre</strong></label>
+                    <InputText id="nombre" class="form-control" @bind-Value="aporte.Nombres" />
+                    <ValidationMessage For="@(() => aporte.Nombres)" />
+                </div>
+
+
+                @* Monto *@
+                <div class="mb-3">
+                    <label class="form-label" for="monto"><strong>Monto</strong></label>
+                    <InputNumber id="monto" class="form-control" @bind-Value="aporte.Monto" />
+                    <ValidationMessage For="@(() => aporte.Monto)" />
+                </div>
+            <div class="mb-3">
+                <label class="form-label"><strong>Fecha</strong></label>
+                <InputDate class="form-control" @bind-Value="aporte.Fecha"></InputDate>
+                <ValidationMessage For="@(() => aporte.Fecha)" />
+            </div>
+            </div>
+
+
+
+
+            @* Footer *@
+            <div class="card-footer text-center mt-2">
+                <button type="button" class="btn btn-outline-primary ml-2" @onclick="Nuevo">
+                    <span class="bi bi-plus"></span> Nuevo
+                </button>
+                <button type="submit" class="btn btn-outline-success ml-2">
+                    <span class="bi bi-check-circle-fill"></span> Guardar
+                </button>
+                <a href="/Aportes/Index/" class="btn btn-secondary">
+                    <i class="bi bi-arrow-bar-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    public Aportes aporte { get; set; } = new Aportes();
+
+    public async Task Crear()
+    {
+        Console.WriteLine("Entrando a Crear()");
+
+        if (await Validar())
+        {
+            Console.WriteLine("Validación exitosa");
+            await aporteService.Guardar(aporte);
+
+            ToastService?.Notify(new(ToastType.Success, "Éxito", "Aporte creado correctamente."));
+            aporte = new Aportes();
+            navigation.NavigateTo("/Aportes/Index?mensaje=Aporte creado correctamente");
+        }
+        else
+        {
+            Console.WriteLine("Falló la validación");
+            ToastService?.Notify(new(ToastType.Danger, "Error", "No se pudo guardar: ya existe un aporte con ese nombre."));
+        }
+    }
+
+    public void Nuevo()
+    {
+        aporte = new Aportes();
+    }
+
+    public async Task<bool> Validar()
+    {
+        if (string.IsNullOrWhiteSpace(aporte.Nombres))
+            return false;
+
+        var existeAporte = await aporteService.BuscarNombres(aporte.Nombres);
+        return existeAporte == null;
+    }
+}

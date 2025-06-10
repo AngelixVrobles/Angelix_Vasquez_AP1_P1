@@ -1,0 +1,134 @@
+﻿@page "/Aportes/Edit/{AportesId:int}"
+@inject AporteService aporteService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Editar Aporte</PageTitle>
+<EditForm Model="aporte" OnValidSubmit="Modificar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container">
+        <div class="card shadow">
+            <div class="card-header text-center bg-success text-white">
+                <h3 class="card-title"><strong>Modificar Aporte</strong></h3>
+            </div>
+
+            <div class="card-body">
+                @* Id *@ 
+                <div class="mb-3">
+                    <label class="form-label"><strong>AporteId</strong></label>
+                    <InputNumber class="form-control" @bind-Value="aporte.AporteId" readonly></InputNumber>
+                </div>
+
+                @* Nombre *@ 
+                <div class="mb-3">
+                    <label class="form-label" for="nombres"><strong>Nombre</strong></label>
+                    <InputText id="nombres" class="form-control" @bind-Value="aporte.Nombres"></InputText>
+                    <ValidationMessage For="@(() => aporte.Nombres)"></ValidationMessage>
+                </div>
+
+                @* Monto *@ 
+                <div class="mb-3">
+                    <label class="form-label" for="Monto"><strong>monto</strong></label>
+                    <InputNumber id="monto" class="form-control" @bind-Value="aporte.Monto"></InputNumber>
+                    <ValidationMessage For="@(() => aporte.Monto)"></ValidationMessage>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Fecha</strong></label>
+                    <InputDate class="form-control" @bind-Value="aporte.Fecha"></InputDate>
+                    <ValidationMessage For="@(() => aporte.Fecha)" />
+                </div>
+            </div>
+
+            @* Footer *@ 
+            <div class="card-footer text-center mt-2">
+
+                @* Botón de guardar *@
+                <button type="submit" class="btn btn-outline-success ml-2">
+                    <span class="bi bi-check-circle-fill"></span> Guardar
+                </button>
+                @* Botón de eliminar *@
+                <button type="button" class="btn btn-outline-danger ml-2" @onclick="Eliminar">
+                    <span class="bi bi-trash-fill"></span> Eliminar
+                </button>
+                @* Botón de Volver *@
+                <a type="button" href="/Aporte/Index/" class="btn btn-secondary">
+                    <i class="bi bi-arrow-bar-left"></i> Volver
+                </a>
+
+
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+        [Parameter] public int aportesId { get; set; }
+        public Aportes? aporte { get; set; } = new Aportes();
+        public bool NombreRepetido { get; set; }
+
+        private string? nombreOriginal;
+
+        [Inject] protected ToastService? ToastService { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            if (aportesId > 0)
+            {
+                aporte = await aporteService.Buscar(aportesId);
+            }
+        }
+
+        public async Task Modificar()
+        {
+            bool nombreCambiado = aporte?.Nombres != nombreOriginal;
+
+            if (!nombreCambiado || !await Validar())
+            {
+                await aporteService.Guardar(aporte);
+
+                ToastService?.Notify(new(ToastType.Success, "Éxito", "Aporte modificado correctamente."));
+                navigation.NavigateTo("/Aportes/Index");
+            }
+            else
+            {
+                ToastService?.Notify(new(ToastType.Danger, "Error", "Ya existe un aporte con ese nombre."));
+            }
+        }
+
+        public async Task<bool> Validar()
+        {
+            var existeAporte = await aporteService.BuscarNombres(aporte.Nombres);
+
+            if (existeAporte != null && existeAporte.AporteId != aporte.AporteId)
+            {
+                NombreRepetido = true;
+            }
+            else
+            {
+                NombreRepetido = false;
+            }
+
+            return NombreRepetido;
+        }
+
+        public async Task Eliminar()
+        {
+            if (aporte != null && aporte.AporteId > 0)
+            {
+                await aporteService.Eliminar(aporte.AporteId);
+
+                ToastService?.Notify(new(ToastType.Success, "Eliminado", "Aporte eliminado correctamente."));
+                navigation.NavigateTo("/Aporte/Index");
+            }
+            else
+            {
+                ToastService?.Notify(new(ToastType.Warning, "Error", "No se pudo eliminar el aporte."));
+            }
+        }
+    }
+
+
+
